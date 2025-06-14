@@ -2,7 +2,16 @@ import { useState } from 'react';
 import axios from 'axios';
 import toast, { Toaster } from 'react-hot-toast';
 import { motion } from 'framer-motion';
-import { PlayIcon, DocumentArrowDownIcon, LinkIcon } from '@heroicons/react/24/outline';
+import { 
+  PlayIcon, 
+  DocumentArrowDownIcon, 
+  LinkIcon, 
+  SparklesIcon,
+  VideoCameraIcon,
+  ClockIcon,
+  CheckCircleIcon,
+  ExclamationCircleIcon
+} from '@heroicons/react/24/outline';
 
 interface Execution {
   id: string;
@@ -97,99 +106,173 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <Toaster position="top-right" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute top-40 left-40 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+      </div>
+
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          style: {
+            background: '#1f2937',
+            color: '#f9fafb',
+            border: '1px solid #374151'
+          }
+        }}
+      />
       
-      <div className="container mx-auto px-4 py-12">
+      <div className="relative z-10 container mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="max-w-4xl mx-auto"
+          className="max-w-6xl mx-auto"
         >
           {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-16">
+            <motion.div
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mb-8"
+            >
+              <VideoCameraIcon className="w-10 h-10 text-white" />
+            </motion.div>
+            
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-6xl font-bold bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent mb-6"
+            >
               AI Video Repurposing Tool
-            </h1>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            </motion.h1>
+            
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed"
+            >
               Transform your long-form videos into viral short clips automatically. 
-              Just paste a YouTube URL and let AI do the magic!
-            </p>
+              Powered by GPT-4 AI analysis, perfect timing, and mobile optimization.
+            </motion.p>
           </div>
 
-          {/* Input Form */}
-          <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
-            <div className="flex flex-col space-y-4">
-              <label htmlFor="video-url" className="text-lg font-semibold text-gray-700">
-                YouTube Video URL
-              </label>
-              <div className="flex space-x-4">
+          {/* Main Input Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="bg-white/10 backdrop-blur-lg rounded-3xl border border-white/20 p-8 mb-12 shadow-2xl"
+          >
+            <div className="flex flex-col space-y-6">
+              <div className="flex items-center space-x-3 mb-2">
+                <LinkIcon className="h-6 w-6 text-purple-400" />
+                <label htmlFor="video-url" className="text-xl font-semibold text-white">
+                  YouTube Video URL
+                </label>
+              </div>
+              
+              <div className="flex flex-col lg:flex-row space-y-4 lg:space-y-0 lg:space-x-4">
                 <div className="flex-1 relative">
-                  <LinkIcon className="absolute left-3 top-3 h-6 w-6 text-gray-400" />
                   <input
                     id="video-url"
                     type="url"
                     value={videoUrl}
                     onChange={(e) => setVideoUrl(e.target.value)}
-                    placeholder="https://www.youtube.com/watch?v=..."
-                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+                    placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                    className="w-full px-6 py-4 bg-white/10 backdrop-blur border border-white/30 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white placeholder-gray-400 text-lg transition-all duration-300"
                     disabled={isProcessing}
                   />
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                 </div>
+                
                 <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(168, 85, 247, 0.4)" }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={triggerWorkflow}
                   disabled={isProcessing || !videoUrl.trim()}
-                  className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                  className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-2xl hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-3 text-lg shadow-lg transition-all duration-300"
                 >
-                  <PlayIcon className="h-5 w-5" />
-                  <span>{isProcessing ? 'Processing...' : 'Process Video'}</span>
+                  {isProcessing ? (
+                    <>
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                      <span>Processing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <SparklesIcon className="h-6 w-6" />
+                      <span>Create Magic</span>
+                    </>
+                  )}
                 </motion.button>
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          {/* Executions List */}
+          {/* Processing History */}
           {executions.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-xl p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Processing History</h2>
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white/10 backdrop-blur-lg rounded-3xl border border-white/20 p-8 mb-12 shadow-2xl"
+            >
+              <h2 className="text-3xl font-bold text-white mb-8 flex items-center">
+                <ClockIcon className="h-8 w-8 mr-3 text-purple-400" />
+                Processing History
+              </h2>
+              
               <div className="space-y-4">
-                {executions.map((execution) => (
+                {executions.map((execution, index) => (
                   <motion.div
                     key={execution.id}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
+                    transition={{ delay: index * 0.1 }}
+                    className="flex items-center justify-between p-6 bg-white/5 backdrop-blur border border-white/10 rounded-2xl hover:bg-white/10 transition-all duration-300"
                   >
                     <div className="flex items-center space-x-4">
-                      <div className={`w-3 h-3 rounded-full ${
-                        execution.status === 'running' ? 'bg-yellow-400 animate-pulse' :
-                        execution.status === 'success' ? 'bg-green-400' : 'bg-red-400'
-                      }`} />
+                      <div className="relative">
+                        {execution.status === 'running' && (
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-400"></div>
+                        )}
+                        {execution.status === 'success' && (
+                          <CheckCircleIcon className="h-8 w-8 text-green-400" />
+                        )}
+                        {execution.status === 'error' && (
+                          <ExclamationCircleIcon className="h-8 w-8 text-red-400" />
+                        )}
+                      </div>
+                      
                       <div>
-                        <p className="font-medium text-gray-900">
-                          Execution {execution.id.slice(-8)}
+                        <p className="font-semibold text-white text-lg">
+                          Execution #{execution.id.slice(-8).toUpperCase()}
                         </p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-gray-400">
                           Started: {new Date(execution.startedAt).toLocaleString()}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        execution.status === 'running' ? 'bg-yellow-100 text-yellow-800' :
-                        execution.status === 'success' ? 'bg-green-100 text-green-800' :
-                        'bg-red-100 text-red-800'
+                    
+                    <div className="flex items-center space-x-4">
+                      <span className={`px-4 py-2 rounded-full text-sm font-bold ${
+                        execution.status === 'running' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' :
+                        execution.status === 'success' ? 'bg-green-500/20 text-green-300 border border-green-500/30' :
+                        'bg-red-500/20 text-red-300 border border-red-500/30'
                       }`}>
                         {execution.status === 'running' ? 'Processing' :
                          execution.status === 'success' ? 'Completed' : 'Failed'}
                       </span>
+                      
                       {execution.status === 'success' && (
                         <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          className="p-3 bg-purple-600/20 text-purple-300 hover:bg-purple-600/30 rounded-xl border border-purple-500/30 transition-all duration-300"
                           title="Download Results"
                         >
                           <DocumentArrowDownIcon className="h-5 w-5" />
@@ -199,41 +282,70 @@ export default function Home() {
                   </motion.div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           )}
 
-          {/* Features */}
-          <div className="mt-16 grid md:grid-cols-3 gap-8">
+          {/* Features Grid */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+            className="grid md:grid-cols-3 gap-8"
+          >
             {[
               {
                 title: 'AI-Powered Analysis',
-                description: 'GPT-4 analyzes your content to identify viral-worthy moments',
-                icon: '🧠'
+                description: 'GPT-4 analyzes your content to identify viral-worthy moments with precision',
+                icon: '🧠',
+                gradient: 'from-purple-500 to-blue-500'
               },
               {
                 title: 'Auto Subtitles',
-                description: 'Generates stylized captions with perfect timing',
-                icon: '📝'
+                description: 'Generates stylized captions with perfect timing and engaging animations',
+                icon: '📝',
+                gradient: 'from-blue-500 to-cyan-500'
               },
               {
                 title: 'Mobile Optimized',
-                description: 'Crops to 9:16 ratio perfect for TikTok and Reels',
-                icon: '📱'
+                description: 'Crops to 9:16 ratio perfect for TikTok, Instagram Reels, and YouTube Shorts',
+                icon: '📱',
+                gradient: 'from-cyan-500 to-purple-500'
               }
             ].map((feature, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-white rounded-xl p-6 shadow-lg text-center"
+                transition={{ delay: 1 + index * 0.2 }}
+                whileHover={{ y: -10, scale: 1.02 }}
+                className="group relative"
               >
-                <div className="text-4xl mb-4">{feature.icon}</div>
-                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
+                <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl blur-xl"
+                     style={{ background: `linear-gradient(135deg, ${feature.gradient.includes('purple') ? '#8b5cf6' : '#3b82f6'}, ${feature.gradient.includes('cyan') ? '#06b6d4' : '#8b5cf6'})` }}>
+                </div>
+                
+                <div className="relative bg-white/10 backdrop-blur-lg rounded-3xl p-8 border border-white/20 text-center shadow-2xl transition-all duration-300 group-hover:border-white/40">
+                  <div className="text-6xl mb-6 transform group-hover:scale-110 transition-transform duration-300">
+                    {feature.icon}
+                  </div>
+                  <h3 className="text-2xl font-bold mb-4 text-white">{feature.title}</h3>
+                  <p className="text-gray-300 leading-relaxed">{feature.description}</p>
+                </div>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
+
+          {/* Footer */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.5 }}
+            className="text-center mt-16 pb-8"
+          >
+            <p className="text-gray-400">
+              Powered by AI • Built with ❤️ • Transform your content today
+            </p>
+          </motion.div>
         </motion.div>
       </div>
     </div>

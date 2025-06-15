@@ -24,11 +24,18 @@ export default function Home() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [executions, setExecutions] = useState<Execution[]>([]);
 
-  const n8nApiUrl = process.env.NEXT_PUBLIC_N8N_API_URL || 'https://your-n8n-domain.com/api/v1';
-  const workflowId = process.env.NEXT_PUBLIC_WORKFLOW_ID || 'your-workflow-id';
+  // Use webhook URL instead of API approach
+  const webhookUrl = process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL || 'https://llm-short-generator-backend.onrender.com/webhook-test/QKRse';
 
   const triggerWorkflow = async () => {
     if (!videoUrl.trim()) {
+      toast.error('Please enter a valid YouTube URL');
+      return;
+    }
+
+    // Basic YouTube URL validation
+    const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[a-zA-Z0-9_-]{11}/;
+    if (!youtubeRegex.test(videoUrl.trim())) {
       toast.error('Please enter a valid YouTube URL');
       return;
     }
@@ -37,36 +44,52 @@ export default function Home() {
     const loadingToast = toast.loading('Starting video processing...');
 
     try {
-      // Trigger the n8n workflow
-      const response = await axios.post(
-        `${n8nApiUrl}/workflows/${workflowId}/execute`,
-        {
-          videoUrl: videoUrl.trim()
+      // Trigger the n8n workflow via webhook
+      const response = await axios.post(webhookUrl, {
+        videoUrl: videoUrl.trim()
+      }, {
+        headers: {
+          'Content-Type': 'application/json'
         },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_N8N_API_KEY}`
-          }
-        }
-      );
+        timeout: 30000 // 30 second timeout
+      });
 
       const execution: Execution = {
-        id: response.data.data.executionId,
+        id: Date.now().toString(), // Use timestamp as simple ID
         status: 'running',
         startedAt: new Date().toISOString()
       };
 
       setExecutions(prev => [execution, ...prev]);
-      toast.success('Video processing started!', { id: loadingToast });
+      toast.success('Video processing started! This may take several minutes...', { id: loadingToast });
       setVideoUrl('');
       
-      // Poll for execution status
-      pollExecutionStatus(execution.id);
+      // Simulate status updates (since webhook doesn't provide real-time status)
+      setTimeout(() => {
+        setExecutions(prev => 
+          prev.map(exec => 
+            exec.id === execution.id ? { ...exec, status: 'running' } : exec
+          )
+        );
+        toast('Processing video... This may take 5-10 minutes for longer videos', {
+          icon: '⏳',
+          duration: 5000
+        });
+      }, 5000);
       
     } catch (error: any) {
       console.error('Error triggering workflow:', error);
-      toast.error(error.response?.data?.message || 'Failed to start processing', { id: loadingToast });
+      let errorMessage = 'Failed to start processing';
+      
+      if (error.code === 'ECONNABORTED') {
+        errorMessage = 'Request timed out. The workflow may still be starting...';
+      } else if (error.response?.status === 404) {
+        errorMessage = 'Workflow endpoint not found. Please check configuration.';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      toast.error(errorMessage, { id: loadingToast });
     } finally {
       setIsProcessing(false);
     }

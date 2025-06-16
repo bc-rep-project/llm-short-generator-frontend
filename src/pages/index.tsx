@@ -17,6 +17,7 @@ interface Execution {
   id: string;
   status: 'running' | 'success' | 'error';
   startedAt: string;
+  result?: any;
 }
 
 export default function Home() {
@@ -24,8 +25,10 @@ export default function Home() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [executions, setExecutions] = useState<Execution[]>([]);
 
-  // Use webhook URL instead of API approach
-  const webhookUrl = process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL || 'https://llm-short-generator-backend.onrender.com/webhook-test/QKRse';
+  // Use the correct n8n webhook URL format
+  // The webhook path from your workflow is 'ai-video-repurposing'
+  const webhookUrl = process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL || 
+    `${process.env.NEXT_PUBLIC_N8N_BASE_URL || 'https://llm-short-generator-backend.onrender.com'}/webhook/ai-video-repurposing`;
 
   const triggerWorkflow = async () => {
     if (!videoUrl.trim()) {
@@ -43,6 +46,14 @@ export default function Home() {
     setIsProcessing(true);
     const loadingToast = toast.loading('Starting video processing...');
 
+    // Create execution record
+    const execution: Execution = {
+      id: Date.now().toString(),
+      status: 'running',
+      startedAt: new Date().toISOString()
+    };
+    setExecutions(prev => [execution, ...prev]);
+
     try {
       // Trigger the n8n workflow via webhook
       const response = await axios.post(webhookUrl, {
@@ -51,80 +62,51 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json'
         },
-        timeout: 30000 // 30 second timeout
+        timeout: 300000 // 5 minute timeout for video processing
       });
 
-      const execution: Execution = {
-        id: Date.now().toString(), // Use timestamp as simple ID
-        status: 'running',
-        startedAt: new Date().toISOString()
-      };
+      // Update execution with success
+      setExecutions(prev => 
+        prev.map(exec => 
+          exec.id === execution.id ? { 
+            ...exec, 
+            status: 'success',
+            result: response.data 
+          } : exec
+        )
+      );
 
-      setExecutions(prev => [execution, ...prev]);
-      toast.success('Video processing started! This may take several minutes...', { id: loadingToast });
+      toast.success(
+        `Video processing completed! Generated ${response.data?.clips_generated || 'multiple'} clips.`, 
+        { id: loadingToast, duration: 6000 }
+      );
       setVideoUrl('');
-      
-      // Simulate status updates (since webhook doesn't provide real-time status)
-      setTimeout(() => {
-        setExecutions(prev => 
-          prev.map(exec => 
-            exec.id === execution.id ? { ...exec, status: 'running' } : exec
-          )
-        );
-        toast('Processing video... This may take 5-10 minutes for longer videos', {
-          icon: '⏳',
-          duration: 5000
-        });
-      }, 5000);
       
     } catch (error: any) {
       console.error('Error triggering workflow:', error);
-      let errorMessage = 'Failed to start processing';
+      
+      // Update execution with error
+      setExecutions(prev => 
+        prev.map(exec => 
+          exec.id === execution.id ? { ...exec, status: 'error' } : exec
+        )
+      );
+
+      let errorMessage = 'Failed to process video';
       
       if (error.code === 'ECONNABORTED') {
-        errorMessage = 'Request timed out. The workflow may still be starting...';
+        errorMessage = 'Processing timed out. Large videos may take longer to process.';
       } else if (error.response?.status === 404) {
-        errorMessage = 'Workflow endpoint not found. Please check configuration.';
+        errorMessage = 'Workflow endpoint not found. Please check backend deployment.';
+      } else if (error.response?.status === 0 || error.message?.includes('Network Error')) {
+        errorMessage = 'Cannot connect to backend. Please check if the service is running.';
       } else if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       }
       
-      toast.error(errorMessage, { id: loadingToast });
+      toast.error(errorMessage, { id: loadingToast, duration: 8000 });
     } finally {
       setIsProcessing(false);
-    }
-  };
-
-  const pollExecutionStatus = async (executionId: string) => {
-    try {
-      const response = await axios.get(
-        `${n8nApiUrl}/executions/${executionId}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_N8N_API_KEY}`
-          }
-        }
-      );
-
-      const status = response.data.data.finished ? 
-        (response.data.data.stoppedAt ? 'success' : 'error') : 'running';
-
-      setExecutions(prev => 
-        prev.map(exec => 
-          exec.id === executionId ? { ...exec, status } : exec
-        )
-      );
-
-      if (status === 'running') {
-        // Continue polling every 10 seconds
-        setTimeout(() => pollExecutionStatus(executionId), 10000);
-      } else if (status === 'success') {
-        toast.success('Video processing completed!');
-      } else {
-        toast.error('Video processing failed');
-      }
-    } catch (error) {
-      console.error('Error polling execution status:', error);
     }
   };
 
